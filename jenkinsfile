@@ -1,0 +1,41 @@
+#!groovy
+pipeline {
+    environment {
+        registry = "Maruthiprasad50/test-my-mine"
+        registryCredentials = 'docker-credentials'
+    }
+    agent any
+    stages{
+        stage('clone git repositry') {
+            steps{
+                git credentialsId:'git-credentials', url: 'https://github.com/maruthiprasad50/my-mine.git'
+            }
+        }
+        stage('building a docker image') {
+            steps {
+                sh 'echo build a docker image'
+                script {
+                    buildDate = new Date()
+                    image = doker.build("${repositry}:BUILD_NUMBER")
+                }
+            }
+        }
+        stage('push to docker repositry') {
+            steps {
+                sh 'echo pushing to a registry'
+                script {
+                    docker.withRegisty('', registryCredentials) {
+                        image.push()
+                        image.push('latest')
+                    }
+                }
+            }
+        }
+        stage('clean my wrk space') {
+            steps{
+                sh 'echo cleaning the builds'
+                sh "docker rmi ${registry}:{BUILD_NUMBER}"
+            }
+        }
+    }
+}
